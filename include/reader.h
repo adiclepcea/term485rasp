@@ -12,3 +12,6 @@ typedef struct{
 
 #endif
 
+bool validatePacket(unsigned char *message, int *oz, int count);
+
+#define DEBUG 1
