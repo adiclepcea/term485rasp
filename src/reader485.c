@@ -1,13 +1,15 @@
 #include <stdbool.h>
 #include "reader485.h"
 
-inline unsigned long long  timeperiod(struct timespec after, struct timespec before){
+#define TIMEPERIOD(AFTER,BEFORE) ((AFTER.tv_sec-BEFORE.tv_sec)*1000000000+(after.tv_nsec - before.tv_nsec))/10000;
+
+static inline unsigned long long  timeperiod(struct timespec after, struct timespec before){
   return ((after.tv_sec-before.tv_sec)*1000000000 + (after.tv_nsec - before.tv_nsec))/10000;
 }
 
 int readPacket485(int *poz, long *period, int *oz){
 
-  int g, rep; 
+  int g, rep;
   struct timespec sBefore;
   struct timespec sAfter;
   long tBefore;
@@ -25,28 +27,28 @@ int readPacket485(int *poz, long *period, int *oz){
   while(count<208){
     if(GET_GPIO(RO_PORT)){
       if(!state){
-	state = true;
-	while(clock_gettime(CLOCK_MONOTONIC, &sAfter)==-1) {printf("Wrong clock 0\n");usleep(1);};
-  
+	      state = true;
+	      while(clock_gettime(CLOCK_MONOTONIC, &sAfter)==-1) {printf("Wrong clock 0\n");usleep(1);};
+
         periodBetween = timeperiod(sAfter,sBefore);
-      
+
         if(periodBetween>400 && periodBetween<600){ //1 pos took 5 ms
           packetStart0 = true;
         }
 
         while(clock_gettime(CLOCK_MONOTONIC, &sBefore)==-1) {printf("Wrong clock 1\n");usleep(1);};
-      
+
         tBefore = sBefore.tv_nsec;
       }
     }else{
       if(state){
         state = false;
-	while(clock_gettime(CLOCK_MONOTONIC, &sAfter)==-1){printf("Wrong clock 2\n");usleep(1);};
+	      while(clock_gettime(CLOCK_MONOTONIC, &sAfter)==-1){printf("Wrong clock 2\n");usleep(1);};
 
         periodBetween = timeperiod(sAfter, sBefore);
 
         if(periodBetween>400 && periodBetween<600){
-	  if(packetStart0) packetStart1 = true;       
+	        if(packetStart0) packetStart1 = true;
         }else if(packetStart1){
           poz[count] = 1;
           period[count] = periodBetween;
@@ -84,7 +86,7 @@ void setup_io()
   close(mem_fd);
 
   if(gpio_map == MAP_FAILED) {
-    printf("mmap error %ul\n", (int)gpio_map);
+    printf("mmap error %ul\n", gpio_map);
     exit(-1);
   }
 

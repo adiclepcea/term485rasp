@@ -29,7 +29,7 @@ volatile unsigned *gpio;
 
 #define GET_GPIO(g) (*(gpio+13)&(1<<g))
 
-#define GPIO_PULL *(gpio+37) 
+#define GPIO_PULL *(gpio+37)
 #define GPIO_PULLCLK0 *(gpio+38)
 
 void setup_io();
