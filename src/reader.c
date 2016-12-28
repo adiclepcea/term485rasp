@@ -18,7 +18,7 @@ bool validatePacket(unsigned char *message, int *oz, int count){
         }
         debug_print("%02x ",message[g]);
       }
-      debug_print("\n");
+      debug_print("%s\n","");
       sum+=0xaa;
       return sum==message[25];
 }

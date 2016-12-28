@@ -11,12 +11,12 @@ int currentLine;
 
 int readPacketMock(int *poz, long *period, int *oz){
   int i,j;
-  unsigned char item = 0;
   int pos = 0;
   if(currentLine>=MAX_LINES){ //we loop through the read lines (roundrobin)
     currentLine = 0;
   }
   for(i=0;i<MAX_ITEMS;i++){
+    unsigned char item = 0;
     item = msg[currentLine][i];
     for(j=0;j<8;j++){
       oz[pos] = (item >> j) & 1;
@@ -39,7 +39,7 @@ bool prepareMock(){
     int linePos=0;
     pch = strtok(line," ");
     while(pch!=NULL && linePos<MAX_ITEMS){
-      sscanf(pch,"%x",&msgPart);
+      sscanf(pch,"%hhx",&msgPart);
       msg[count][linePos++]=msgPart;
       pch = strtok(NULL," ");
     }

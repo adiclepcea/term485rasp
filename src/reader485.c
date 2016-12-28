@@ -9,11 +9,8 @@ static inline unsigned long long  timeperiod(struct timespec after, struct times
 
 int readPacket485(int *poz, long *period, int *oz){
 
-  int g, rep;
   struct timespec sBefore;
   struct timespec sAfter;
-  long tBefore;
-  long tAfter;
   unsigned long periodBetween;
 
   int count = 0;
@@ -21,8 +18,6 @@ int readPacket485(int *poz, long *period, int *oz){
   bool packetStart0;
   bool packetStart1;
   while(clock_gettime(CLOCK_MONOTONIC, &sBefore)==-1);
-
-  tBefore = sBefore.tv_nsec;
 
   while(count<208){
     if(GET_GPIO(RO_PORT)){
@@ -38,7 +33,6 @@ int readPacket485(int *poz, long *period, int *oz){
 
         while(clock_gettime(CLOCK_MONOTONIC, &sBefore)==-1) {printf("Wrong clock 1\n");usleep(1);};
 
-        tBefore = sBefore.tv_nsec;
       }
     }else{
       if(state){
@@ -86,7 +80,7 @@ void setup_io()
   close(mem_fd);
 
   if(gpio_map == MAP_FAILED) {
-    printf("mmap error %ul\n", gpio_map);
+    printf("mmap error %lu\n", (unsigned long)gpio_map);
     exit(-1);
   }
 

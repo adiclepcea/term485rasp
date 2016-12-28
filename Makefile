@@ -4,8 +4,9 @@ TDIR=./test
 OUTPUT=reader
 TESTS=tests
 CC=gcc
-CFLAGS=-I$(IDIR)
-SRC=$(SDIR)/*.c
+CFLAGS=-I$(IDIR) -lpthread -lcurl -Wall -pedantic -lmcheck
+LIBDIR=./lib/
+SRC=$(SDIR)/*.c ./lib/libcobserver.a
 
 .PHONY: build clean help test
 
