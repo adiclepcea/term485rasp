@@ -1,9 +1,11 @@
+#include "queue.h"
 #include <stdarg.h>
 #include <pthread.h>
 #include <stdbool.h>
 
 #ifndef SUBSCRIBER
   #define SUBSCRIBER
+
 typedef struct subscriber{
   int id;
   void (*process)(struct subscriber *sub);
@@ -15,10 +17,9 @@ typedef struct subscriber{
   pthread_t thread;
   pthread_cond_t cond;
   pthread_mutex_t mutex;
-  void *data;
-  size_t dataSize;
   volatile bool stop;
   volatile bool called;
+  struct queue queue;
 } Subscriber;
 
 typedef struct subscriberThreadData{

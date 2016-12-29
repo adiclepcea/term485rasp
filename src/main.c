@@ -52,10 +52,11 @@ int main(int argc, char **argv)
   pub.init(&pub);
 
 //add the needed subscribers
-  initRemoteWriter("https://127.0.0.1:8080/hello","myclientid");
+  initRemoteWriter("https://192.168.1.247:8080/hello","myclientid");
   Subscriber sRemoteWriter;
   sRemoteWriter.init = initSubscriber;
   sRemoteWriter.init(&sRemoteWriter,processData);
+  printf("%d\n",sRemoteWriter.queue.noOfItems);
   ///////
   //we add the remoteWriter destroy action to the subscriber;
   endRemoteWriter = sRemoteWriter.end;
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
 
   int reads = 0;
 
-  while(reads<1000){
+  while(reads<10){
 
     int count = reader.readPacket(poz,period, oz);
 

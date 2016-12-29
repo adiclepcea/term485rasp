@@ -4,7 +4,7 @@ TDIR=./test
 OUTPUT=reader
 TESTS=tests
 CC=gcc
-CFLAGS=-I$(IDIR) -lpthread -lcurl -Wall -pedantic -lmcheck
+CFLAGS=-I$(IDIR) -lpthread -lcurl -Wall -pedantic -std=gnu99
 LIBDIR=./lib/
 SRC=$(SDIR)/*.c ./lib/libcobserver.a
 

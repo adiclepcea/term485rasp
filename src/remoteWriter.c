@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include "remoteWriter.h"
+#include "queue.h"
 
 //BufferStruct will hold the output from curl
 struct BufferStruct{
@@ -31,22 +32,40 @@ char *bytesToStringHex(size_t size, unsigned char *array){
     sprintf(tmp,"%02x",array[i]);
     strcat(out, tmp);
   }
-  out[size*2+1]=0;
+  out[size*2]=0;
   return out;
 }
 
-char *createJson(size_t size, unsigned char *array){
-  char* packet = bytesToStringHex(size, array);
+char *createJson(struct queue *q){
+  void *item;
+  char *reads = malloc(1);
+  reads[0] = 0;
+  while((item=q->dequeue(q))){
+    char* packet = bytesToStringHex(26, (unsigned char*)item);
+    free(item);
+    item = NULL;
+    char *pTemp = malloc(strlen(packet)+15);
+    sprintf(pTemp,"{\"packet\":\"%s\"}",packet);
+    reads = realloc(reads, strlen(reads)+strlen(pTemp)+20);
+    if(strlen(reads)!=0){
+      strcat(reads,", ");
+    }
+    strcat(reads, pTemp);
+    free(pTemp);
+    pTemp = NULL;
+    free(packet);
+    packet = NULL;
+  }
   time_t temp;
   struct tm *timeptr;
   temp = time(NULL);
   timeptr = localtime(&temp);
   char stime [100];
   strftime(stime, sizeof(stime),"%Y-%m-%dT%H:%M:%S",timeptr);
-  char *sendstring = malloc(strlen(packet)+strlen(clientid)+strlen(stime)+30);
-  sprintf(sendstring,"{\"id\":\"%s\",\"packet\":\"%s\",\"time\":\"%s\"}",clientid,packet,stime);
-  free(packet);
-  packet = NULL;
+  char *sendstring = malloc(strlen(reads)+strlen(clientid)+strlen(stime)+100);
+  sprintf(sendstring,"{\"id\":\"%s\",\"reads\":[%s],\"time\":\"%s\"}",clientid,reads,stime);
+  free(reads);
+  reads = NULL;
   return sendstring;
 }
 
@@ -94,7 +113,7 @@ void processData(struct subscriber *sub){
     fprintf(stderr, "Exiting as curl was not inited\n" );
   }
 
-  char *json = createJson(sub->dataSize, sub->data);
+  char *json = createJson(&sub->queue);
 
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA,(void *)&output);
