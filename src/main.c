@@ -5,6 +5,7 @@
 #include "observer.h"
 #include <pthread.h>
 #include "remoteWriter.h"
+#include "localFileWriter.h"
 
 #ifdef __arm__
 #include "reader485.h"
@@ -20,7 +21,7 @@ void newEndRemoteWriter(struct subscriber *sub){
   endRemoteWriter(sub);
   destroyRemoteWriter();
 }
-/////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
 
 int main(int argc, char **argv)
 {
@@ -62,7 +63,13 @@ int main(int argc, char **argv)
   endRemoteWriter = sRemoteWriter.end;
   sRemoteWriter.end = newEndRemoteWriter;
   ///////
+
+  Subscriber sLocalFileWriter;
+  sLocalFileWriter.init = initSubscriber;
+  sLocalFileWriter.init(&sLocalFileWriter,processLocalData);
+
   pub.subscribe(&pub, &sRemoteWriter);
+  pub.subscribe(&pub, &sLocalFileWriter);
 
 //start reading
   reader.prepare();
@@ -89,6 +96,7 @@ int main(int argc, char **argv)
   }
 
   pub.unsubscribe(&pub, &sRemoteWriter);
+  pub.unsubscribe(&pub, &sLocalFileWriter);
 
   pthread_exit(NULL);
 

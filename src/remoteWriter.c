@@ -9,6 +9,7 @@
 #include <time.h>
 #include "remoteWriter.h"
 #include "queue.h"
+#include "util.h"
 
 //BufferStruct will hold the output from curl
 struct BufferStruct{
@@ -23,19 +24,6 @@ char *clientid;
 
 bool RWI;
 
-char *bytesToStringHex(size_t size, unsigned char *array){
-  int i;
-  char *out = malloc(size*2+1);
-  out[0]=0;
-  char tmp[3];
-  for(i=0;i<size;i++){
-    sprintf(tmp,"%02x",array[i]);
-    strcat(out, tmp);
-  }
-  out[size*2]=0;
-  return out;
-}
-
 char *createJson(struct queue *q){
   void *item;
   char *reads = malloc(1);
@@ -46,26 +34,31 @@ char *createJson(struct queue *q){
     item = NULL;
     char *pTemp = malloc(strlen(packet)+15);
     sprintf(pTemp,"{\"packet\":\"%s\"}",packet);
-    reads = realloc(reads, strlen(reads)+strlen(pTemp)+20);
+    free(packet);
+    packet = NULL;
+    char *reads1 = realloc(reads, strlen(reads)+strlen(pTemp)+20);
+    if(reads1==NULL){
+      fprintf(stderr, "No more memory available!");
+      exit(200);
+    }else{
+      reads = reads1;
+      reads1 = NULL;
+    }
     if(strlen(reads)!=0){
       strcat(reads,", ");
     }
     strcat(reads, pTemp);
     free(pTemp);
     pTemp = NULL;
-    free(packet);
-    packet = NULL;
   }
-  time_t temp;
-  struct tm *timeptr;
-  temp = time(NULL);
-  timeptr = localtime(&temp);
-  char stime [100];
-  strftime(stime, sizeof(stime),"%Y-%m-%dT%H:%M:%S",timeptr);
+
+  char *stime = timeNow();
   char *sendstring = malloc(strlen(reads)+strlen(clientid)+strlen(stime)+100);
   sprintf(sendstring,"{\"id\":\"%s\",\"reads\":[%s],\"time\":\"%s\"}",clientid,reads,stime);
   free(reads);
   reads = NULL;
+  free(stime);
+  stime = NULL;
   return sendstring;
 }
 
