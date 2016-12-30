@@ -97,7 +97,8 @@ int main(int argc, char **argv)
 
   pub.unsubscribe(&pub, &sRemoteWriter);
   pub.unsubscribe(&pub, &sLocalFileWriter);
-
+  pthread_join(sRemoteWriter.thread,NULL);
+  pthread_join(sLocalFileWriter.thread,NULL);
   pthread_exit(NULL);
 
   return 0;

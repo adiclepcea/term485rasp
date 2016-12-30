@@ -94,11 +94,12 @@ void processData(struct subscriber *sub){
   struct BufferStruct output;
   output.buffer = NULL;
   output.size = 0;
-  long http_code;
-  double c_length;
+  long http_code = 0;
+  double c_length = 0;
   char errbuf[CURL_ERROR_SIZE];
   errbuf[0]=0;
 
+  curl_global_cleanup();
 
   startCurl();
 
@@ -122,6 +123,7 @@ void processData(struct subscriber *sub){
   curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &c_length);
 
   curl_easy_cleanup(curl);
+
   free(json);
   json = NULL;
 
@@ -144,12 +146,6 @@ void startCurl(void){
   static const char *pCertFile = "./certs/cert.pem";
   static const char *pCACertFile = "./certs/ca-chain.cert.pem";
   static const char *pKeyFile = "./certs/key.pem";
-  struct curl_slist *headers = NULL;
-  headers = curl_slist_append(headers, "Accept: application/json");
-  headers = curl_slist_append(headers, "Content-Type: application/json");
-  headers = curl_slist_append(headers, "charsets: utf-8");
-
-  curl_global_init(CURL_GLOBAL_ALL);
 
   curl = curl_easy_init();
   if(!curl){
@@ -160,7 +156,7 @@ void startCurl(void){
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
   curl_easy_setopt(curl, CURLOPT_AUTOREFERER, 1);
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-  curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "");
+  //curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "");
   curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5L);
   curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
   curl_easy_setopt(curl, CURLOPT_SSLCERT, pCertFile);
@@ -169,7 +165,7 @@ void startCurl(void){
   curl_easy_setopt(curl, CURLOPT_CAINFO, pCACertFile);
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
   curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
   curl_easy_setopt(curl, CURLOPT_URL, server);
 
 }
@@ -180,6 +176,8 @@ void initRemoteWriter(const char* srv,const char* cid){
   clientid = malloc(strlen(cid)+1);
   strcpy(server,srv);
   strcpy(clientid,cid);
+
+  curl_global_init(CURL_GLOBAL_ALL);
 
   RWI = true;
 }
