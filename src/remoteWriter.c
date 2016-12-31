@@ -11,6 +11,8 @@
 #include "queue.h"
 #include "util.h"
 
+struct curl_slist *headers = NULL;
+
 //BufferStruct will hold the output from curl
 struct BufferStruct{
   char *buffer;
@@ -122,6 +124,9 @@ void processData(struct subscriber *sub){
   curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
   curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &c_length);
 
+  curl_slist_free_all(headers);
+  headers = NULL;
+
   curl_easy_cleanup(curl);
 
   free(json);
@@ -147,6 +152,8 @@ void startCurl(void){
   static const char *pCACertFile = "./certs/ca-chain.cert.pem";
   static const char *pKeyFile = "./certs/key.pem";
 
+  headers = curl_slist_append(headers, "Content-Type: application-json");
+
   curl = curl_easy_init();
   if(!curl){
     fprintf(stderr, "Remote writer could not be inited!");
@@ -165,6 +172,7 @@ void startCurl(void){
   curl_easy_setopt(curl, CURLOPT_CAINFO, pCACertFile);
   curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
   curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
   curl_easy_setopt(curl, CURLOPT_URL, server);
 
