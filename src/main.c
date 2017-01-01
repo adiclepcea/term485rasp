@@ -1,17 +1,26 @@
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include "debug.h"
 #include "reader.h"
 #include "observer.h"
 #include <pthread.h>
 #include "remoteWriter.h"
 #include "localFileWriter.h"
+#include "config.h"
 
 #ifdef __arm__
 #include "reader485.h"
 #else
 #include "readerMock.h"
 #endif
+
+char *server;
+char *clientid;
+
+unsigned char lastCC[26];
+unsigned char lastDD[26];
 
 /////////////////////////////////////////////////////////
 //this will be used to properly destroy the remoteWriter
@@ -23,12 +32,72 @@ void newEndRemoteWriter(struct subscriber *sub){
 }
 //////////////////////////////////////////////////////////
 
+bool readConfig(){
+  server = readConfigValue("config.ini", "server");
+  clientid = readConfigValue("config.ini", "clientid");
+
+  if(server==NULL){
+    fprintf(stderr, "Configuration value server not found!");
+    return false;
+  }
+  if(clientid==NULL){
+    free(server);
+    server = NULL;
+    fprintf(stderr, "Configuration value clientid not found!");
+    return false;
+  }
+  return true;
+}
+
+void clean(){
+  if(clientid!=NULL){
+    free(clientid);
+    clientid = NULL;
+  }
+  if(!server){
+    free(server);
+    server = NULL;
+  }
+}
+
+static inline bool theSameAsLast(unsigned char *message){
+  int i;
+  int j;
+  unsigned char *last = NULL;
+  if(message[0]==0xCC){
+    last = lastCC;
+  }else if(message[0]==0xDD){
+    last = lastDD;
+  }
+  if(last==NULL){ //we return true although this is not so, but the package should never be sent;
+    return true;
+  }
+  for(i=0;i<26;i++){
+    if(message[i]!=last[i]){
+      for(j=0;j<26;j++){//we copy the new message in place of the old one;
+        last[j]=message[j];
+      }
+      last = NULL;
+      return false;
+    }
+  }
+  return true;
+}
+
 int main(int argc, char **argv)
 {
 
   int poz[208];
   long period[208];
   int oz[208];
+
+  clientid = NULL;
+  server = NULL;
+
+  if(!readConfig()){
+    clean();
+    exit(-1);
+  }
 
 //choose the read source
 #ifdef __arm__
@@ -53,7 +122,10 @@ int main(int argc, char **argv)
   pub.init(&pub);
 
 //add the needed subscribers
-  initRemoteWriter("https://192.168.1.247:8080/hello","myclientid");
+  initRemoteWriter(server,clientid);
+
+  //initRemoteWriter("https://192.168.1.247:8080/hello","me");
+
   Subscriber sRemoteWriter;
   sRemoteWriter.init = initSubscriber;
   sRemoteWriter.init(&sRemoteWriter,processData);
@@ -76,7 +148,7 @@ int main(int argc, char **argv)
 
   int reads = 0;
 
-  while(reads<10){
+  while(reads<100){
 
     int count = reader.readPacket(poz,period, oz);
 
@@ -87,13 +159,19 @@ int main(int argc, char **argv)
      unsigned char message[26];
 
      if(reader.validatePacket(message, oz,count)){
-       pub.publish(&pub, sizeof(message),message);
+       if(!theSameAsLast(message)){
+         pub.publish(&pub, sizeof(message),message);
+       }
      }
 
     }
     reads++;
     usleep(5000);
   }
+
+  sleep(2);
+
+  clean();
 
   pub.unsubscribe(&pub, &sRemoteWriter);
   pub.unsubscribe(&pub, &sLocalFileWriter);

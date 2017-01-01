@@ -21,13 +21,13 @@ struct BufferStruct{
 
 CURL *curl;
 
-char *server;
-char *clientid;
+char *remoteServer;
+char *myclientid;
 
 bool RWI;
 
 char *createJson(struct queue *q){
-  void *item;
+  void *item = NULL;
   char *reads = malloc(1);
   reads[0] = 0;
   while((item=q->dequeue(q))){
@@ -38,7 +38,13 @@ char *createJson(struct queue *q){
     sprintf(pTemp,"{\"packet\":\"%s\"}",packet);
     free(packet);
     packet = NULL;
-    char *reads1 = realloc(reads, strlen(reads)+strlen(pTemp)+20);
+    char *reads1 = NULL;
+    if(reads==NULL){
+      reads1 = realloc(reads, strlen(pTemp)+20);
+    }else{
+      reads1 = realloc(reads, strlen(reads)+strlen(pTemp)+20);
+    }
+
     if(reads1==NULL){
       fprintf(stderr, "No more memory available!");
       exit(200);
@@ -46,17 +52,19 @@ char *createJson(struct queue *q){
       reads = reads1;
       reads1 = NULL;
     }
-    if(strlen(reads)!=0){
-      strcat(reads,", ");
+    if(reads){
+      if(strlen(reads)!=0){
+        strcat(reads,", ");
+      }
+      strcat(reads, pTemp);
     }
-    strcat(reads, pTemp);
     free(pTemp);
     pTemp = NULL;
   }
 
   char *stime = timeNow();
-  char *sendstring = malloc(strlen(reads)+strlen(clientid)+strlen(stime)+100);
-  sprintf(sendstring,"{\"id\":\"%s\",\"reads\":[%s],\"time\":\"%s\"}",clientid,reads,stime);
+  char *sendstring = malloc(strlen(reads)+strlen(myclientid)+strlen(stime)+100);
+  sprintf(sendstring,"{\"id\":\"%s\",\"reads\":[%s],\"time\":\"%s\"}",myclientid,reads,stime);
   free(reads);
   reads = NULL;
   free(stime);
@@ -174,26 +182,24 @@ void startCurl(void){
   curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST");
   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-  curl_easy_setopt(curl, CURLOPT_URL, server);
+  curl_easy_setopt(curl, CURLOPT_URL, remoteServer);
 
 }
 
 void initRemoteWriter(const char* srv,const char* cid){
 
-  server = malloc(strlen(srv)+1);
-  clientid = malloc(strlen(cid)+1);
-  strcpy(server,srv);
-  strcpy(clientid,cid);
+  remoteServer = strdup(srv);
+  myclientid = strdup(cid);
 
-  curl_global_init(CURL_GLOBAL_ALL);
+  ///curl_global_init(CURL_GLOBAL_ALL);
 
   RWI = true;
 }
 
 void destroyRemoteWriter(void){
   fprintf(stderr, "Destroying remote writer\n" );
-  free(server);
-  free(clientid);
-  server = NULL;
-  clientid = NULL;
+  free(remoteServer);
+  free(myclientid);
+  remoteServer = NULL;
+  myclientid = NULL;
 }
