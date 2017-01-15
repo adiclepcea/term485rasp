@@ -1,6 +1,6 @@
 //http://elinux.org/RPi_GPIO_Code_Samples#C
-#define BCM2708_PERI_BASE 	0x20000000 //use this for Rasberry 1
-//#define BCM2708_PERI_BASE 	0x3F000000 //use this for Raspbery 2 and 3
+//#define BCM2708_PERI_BASE 	0x20000000 //use this for Rasberry 1
+#define BCM2708_PERI_BASE 	0x3F000000 //use this for Raspbery 2 and 3
 #define GPIO_BASE 		(BCM2708_PERI_BASE + 0x200000)
 
 #define RO_PORT 17
