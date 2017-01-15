@@ -146,9 +146,9 @@ int main(int argc, char **argv)
 //start reading
   reader.prepare();
 
-  int reads = 0;
+  //int reads = 0;
 
-  while(reads<100){
+  while(true){
 
     int count = reader.readPacket(poz,period, oz);
 
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
      }
 
     }
-    reads++;
+    //reads++;
     usleep(5000);
   }
 
