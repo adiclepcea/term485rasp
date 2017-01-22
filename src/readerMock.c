@@ -24,7 +24,7 @@ int readPacketMock(int *poz, long *period, int *oz){
     }
   }
   currentLine++;
-  usleep(50000);//we sleep half of seccond to simulate the real communication
+  usleep(500000);//we sleep half of seccond to simulate the real communication
   return pos;
 }
 

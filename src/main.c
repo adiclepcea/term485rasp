@@ -8,7 +8,7 @@
 #include <pthread.h>
 #include "remoteWriter.h"
 #include "localFileWriter.h"
-#include "config.h"
+#include "configJson.h"
 
 #ifdef __arm__
 #include "reader485.h"
@@ -32,9 +32,27 @@ void newEndRemoteWriter(struct subscriber *sub){
 }
 //////////////////////////////////////////////////////////
 
+bool readConfigJson(){
+  fprintf(stderr, "%s\n", "reading" );
+  readConfig("config.json",&clientid,&server);
+  if(server==NULL){
+    fprintf(stderr, "Configuration value server not found!");
+    return false;
+  }
+  if(clientid==NULL){
+    free(server);
+    server = NULL;
+    fprintf(stderr, "Configuration value clientid not found!");
+    return false;
+  }
+  fprintf(stderr, "got %s,%s\n", clientid,server );
+  return true;
+}
+/*
 bool readConfig(){
   server = readConfigValue("config.ini", "server");
   clientid = readConfigValue("config.ini", "clientid");
+  heartbeatserver = readConfigValue("config.ini","heartbeatserver");
 
   if(server==NULL){
     fprintf(stderr, "Configuration value server not found!");
@@ -46,18 +64,27 @@ bool readConfig(){
     fprintf(stderr, "Configuration value clientid not found!");
     return false;
   }
+  if(heartbeatserver==NULL){
+    free(server);
+    server = NULL;
+    free(clientid);
+    clientid = NULL;
+    fprintf(stderr, "Configuration value for heartbeatserver not found!");
+  }
+
   return true;
 }
-
+*/
 void clean(){
   if(clientid!=NULL){
     free(clientid);
     clientid = NULL;
   }
-  if(!server){
+  if(server){
     free(server);
     server = NULL;
   }
+
 }
 
 static inline bool theSameAsLast(unsigned char *message){
@@ -94,7 +121,7 @@ int main(int argc, char **argv)
   clientid = NULL;
   server = NULL;
 
-  if(!readConfig()){
+  if(!readConfigJson()){
     clean();
     exit(-1);
   }
@@ -146,9 +173,9 @@ int main(int argc, char **argv)
 //start reading
   reader.prepare();
 
-  //int reads = 0;
+  int reads = 0;
 
-  while(true){
+  while(reads<100){
 
     int count = reader.readPacket(poz,period, oz);
 
@@ -165,7 +192,7 @@ int main(int argc, char **argv)
      }
 
     }
-    //reads++;
+    reads++;
     usleep(5000);
   }
 

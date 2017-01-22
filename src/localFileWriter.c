@@ -21,7 +21,7 @@ void writeToFile(char* text){
 }
 
 void processLocalData(struct subscriber *sub){
-  
+
   char *text = createText(&sub->queue);
 
   writeToFile(text);
@@ -42,7 +42,7 @@ char *createText(struct queue *q){
     free(item);
     item = NULL;
     char *pTemp = malloc(strlen(packet)+30);
-    sprintf(pTemp,"%s => %s\n",stime, packet);
+    sprintf(pTemp,"%s: %s\n",stime, packet);
     free(packet);
     packet = NULL;
     char *reads1 = realloc(reads, strlen(reads)+strlen(pTemp)+1);
