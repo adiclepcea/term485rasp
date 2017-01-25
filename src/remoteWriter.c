@@ -10,6 +10,7 @@
 #include "remoteWriter.h"
 #include "queue.h"
 #include "util.h"
+#include "message.h"
 
 struct curl_slist *headers = NULL;
 
@@ -31,11 +32,13 @@ char *createJson(struct queue *q){
   char *reads = malloc(1);
   reads[0] = 0;
   while((item=q->dequeue(q))){
-    char* packet = bytesToStringHex(26, (unsigned char*)item);
+    ReadMessage read = *(ReadMessage*)item;
+    char* packet = bytesToStringHex(26, read.message);
+    //packet[26]=0;
     free(item);
     item = NULL;
-    char *pTemp = malloc(strlen(packet)+15);
-    sprintf(pTemp,"{\"packet\":\"%s\"}",packet);
+    char *pTemp = malloc(strlen(packet)+strlen(read.time_str)+25);
+    sprintf(pTemp,"{\"time\":\"%s\",\"packet\":\"%s\"}",read.time_str,packet);
     free(packet);
     packet = NULL;
     char *reads1 = NULL;
@@ -62,13 +65,11 @@ char *createJson(struct queue *q){
     pTemp = NULL;
   }
 
-  char *stime = timeNow();
-  char *sendstring = malloc(strlen(reads)+strlen(myclientid)+strlen(stime)+100);
-  sprintf(sendstring,"{\"id\":\"%s\",\"reads\":[%s],\"time\":\"%s\"}",myclientid,reads,stime);
+  char *sendstring = malloc(strlen(reads)+strlen(myclientid)+100);
+  sprintf(sendstring,"{\"id\":\"%s\",\"reads\":[%s]}",myclientid,reads);
   free(reads);
   reads = NULL;
-  free(stime);
-  stime = NULL;
+
   return sendstring;
 }
 

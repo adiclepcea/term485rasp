@@ -1,6 +1,7 @@
 #include "localFileWriter.h"
 #include "util.h"
 #include <time.h>
+#include "message.h"
 
 void writeToFile(char* text){
   time_t temp;
@@ -35,14 +36,13 @@ char *createText(struct queue *q){
   char *reads = malloc(1);
   reads[0] = 0;
 
-  char *stime = timeNow();
-
   while((item=q->dequeue(q))){
-    char* packet = bytesToStringHex(26, (unsigned char*)item);
+    ReadMessage read = *(ReadMessage*)item;
+    char* packet = bytesToStringHex(26, read.message);
     free(item);
     item = NULL;
     char *pTemp = malloc(strlen(packet)+30);
-    sprintf(pTemp,"%s: %s\n",stime, packet);
+    sprintf(pTemp,"%s: %s\n",read.time_str, packet);
     free(packet);
     packet = NULL;
     char *reads1 = realloc(reads, strlen(reads)+strlen(pTemp)+1);
@@ -57,7 +57,6 @@ char *createText(struct queue *q){
     free(pTemp);
     pTemp = NULL;
   }
-  free(stime);
-  stime = NULL;
+  
   return reads;
 }

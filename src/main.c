@@ -9,6 +9,8 @@
 #include "remoteWriter.h"
 #include "localFileWriter.h"
 #include "configJson.h"
+#include "message.h"
+#include "util.h"
 
 #ifdef __arm__
 #include "reader485.h"
@@ -156,11 +158,11 @@ int main(int argc, char **argv)
   Subscriber sRemoteWriter;
   sRemoteWriter.init = initSubscriber;
   sRemoteWriter.init(&sRemoteWriter,processData);
-  printf("%d\n",sRemoteWriter.queue.noOfItems);
+  //printf("%d\n",sRemoteWriter.queue.noOfItems);
   ///////
   //we add the remoteWriter destroy action to the subscriber;
-  endRemoteWriter = sRemoteWriter.end;
-  sRemoteWriter.end = newEndRemoteWriter;
+  //endRemoteWriter = sRemoteWriter.end;
+  //sRemoteWriter.end = newEndRemoteWriter;
   ///////
 
   Subscriber sLocalFileWriter;
@@ -175,7 +177,9 @@ int main(int argc, char **argv)
 
   int reads = 0;
 
-  while(reads<100){
+  ReadMessage rm;
+
+  while(reads<40){
 
     int count = reader.readPacket(poz,period, oz);
 
@@ -183,11 +187,15 @@ int main(int argc, char **argv)
       printf("Incorrect package: length is only %d \n", count);
     }
     else{
-     unsigned char message[26];
+     //unsigned char message[26];
 
-     if(reader.validatePacket(message, oz,count)){
-       if(!theSameAsLast(message)){
-         pub.publish(&pub, sizeof(message),message);
+     if(reader.validatePacket(rm.message, oz,count)){
+       if(!theSameAsLast(rm.message)){
+         char *t = timeNow();
+         strncpy(rm.time_str, t,20);
+         free(t);
+         t = NULL;
+         pub.publish(&pub, sizeof(rm),&rm);
        }
      }
 
