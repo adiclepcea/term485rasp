@@ -8,7 +8,7 @@ CFLAGS=-I$(IDIR) -lpthread -lcurl -Wall -pedantic -std=gnu99
 LIBDIR=./lib/
 SRC=$(SDIR)/*.c ./lib/libcobserver.a
 
-.PHONY: build clean help test
+.PHONY: build clean help test buildhb
 
 help:
 	@echo "make build   - build the program"
@@ -27,3 +27,6 @@ test:
 clean:
 	@rm $(OUTPUT)
 	@rm $(TESTS)
+	@rm hb
+buildhb:
+	go build -o hb main.go

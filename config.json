@@ -1,6 +1,6 @@
 {
   "clientid":"myself",
-  "reader_server":"https://comp-adi:8080/hello",
-  "heartbeat_server":"https://comp-adi:8080/heartbeat",
-  "upload_server": "https://comp-adi:8080/heartbeat"
+  "reader_server":"https://comp-adi:9876/read",
+  "heartbeat_server":"https://comp-adi:9876/heartbeat",
+  "upload_server": "https://comp-adi:9876/heartbeat"
 }
