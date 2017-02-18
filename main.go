@@ -69,7 +69,7 @@ func getSecureHTTPClient() (*http.Client, error) {
 	}
 	tlsConfig.BuildNameToCertificate()
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
-	client := &http.Client{Transport: transport}
+	client := &http.Client{Timeout: 5*time.Second, Transport: transport}
 	return client, err
 }
 

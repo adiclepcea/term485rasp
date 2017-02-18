@@ -30,3 +30,10 @@ clean:
 	@rm hb
 buildhb:
 	go build -o hb main.go
+
+docker: clean-docker build buildhb
+	docker build -t esensesclient .
+
+clean-docker:
+	exists=$(docker images | grep esensesclient || true)
+	[ ! -z "${exists}" ] && { docker rmi -f esensesclient; } || true

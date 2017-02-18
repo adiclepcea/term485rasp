@@ -2,3 +2,4 @@ tests
 reader
 *.txt
 certs/*.pem
+hb
