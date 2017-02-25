@@ -1,3 +1,4 @@
 #! /bin/sh
-/tmp/reader &
-/tmp/main
+cd /usr/bin
+./reader &
+./hb
